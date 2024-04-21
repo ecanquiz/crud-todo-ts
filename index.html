@@ -16,8 +16,21 @@
     <div class="left">
       <form id="form">
         <label for="">Write your task here</label>
-        <br><br>
-        <textarea name="" id="input" cols="30" rows="5"></textarea>
+        
+        
+        <div>
+            <p>Task Title</p>
+            <input type="text" class="form-control" name="" id="textInput">
+            <div id="msg"></div>
+            <br>
+            <p>Due Date</p>
+            <input type="date" class="form-control" name="" id="dateInput">
+            <br>
+            <p>Description</p>
+            <textarea name="" class="form-control" id="textarea" cols="30" rows="5"></textarea>
+            <br>
+        </div>
+
         <br><br>
         <div id="msg"></div>
         <button type="submit">Add task</button>
