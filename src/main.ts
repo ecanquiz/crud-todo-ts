@@ -1,7 +1,13 @@
 let form = document.getElementById("form");
-let input = document.getElementById("input");
+let textInput = document.getElementById("textInput");
+let dateInput = document.getElementById("dateInput");
+let textarea = document.getElementById("textarea");
 let msg = document.getElementById("msg");
 let tasks = document.getElementById("tasks");
+
+textInput.value = "";
+dateInput.value = "";
+textarea.value = "";
 
 form.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -10,7 +16,7 @@ form.addEventListener("submit", (e) => {
 });
 
 const formValidation = () => {
-  if (input.value === "") {
+  if (textInput.value === "" || dateInput.value === "" || textarea.value === "") {
     msg.innerHTML = "Task cannot be blank";
     console.log("failure");
   } else {
@@ -23,7 +29,9 @@ const formValidation = () => {
 let data = {};
 
 const acceptData = () => {
-  data["text"] = input.value;
+  data["textInput"] = textInput.value;
+  data["dateInput"] = dateInput.value;
+  data["textarea"] = textarea.value;
   console.log(data);
   createTask();
 };
@@ -31,14 +39,16 @@ const acceptData = () => {
 const createTask = () => {
   tasks.innerHTML += `
   <div>
-    <p>${data.text}</p>
+    <p>${data.textInput}</p><p>${data.dateInput}</p><p>${data.textarea}</p>
     <span class="options">
       <i onClick="editTask(this)" class="fas fa-edit"></i>
       <i onClick="deleteTask(this)" class="fas fa-trash-alt"></i>
     </span>
   </div>
   `;
-  input.value = "";
+  textInput.value = "";
+  dateInput.value = "";
+  textarea.value = "";
 };
 
 const deleteTask = (e) => {
@@ -46,7 +56,9 @@ const deleteTask = (e) => {
 };
 
 const editTask = (e) => {
-  input.value = e.parentElement.previousElementSibling.innerHTML;
+  textInput.value = e.parentElement.previousElementSibling.previousElementSibling.previousElementSibling.innerHTML;
+  dateInput.value = e.parentElement.previousElementSibling.previousElementSibling.innerHTML;
+  textarea.value = e.parentElement.previousElementSibling.innerHTML; 
   e.parentElement.parentElement.remove();
 };
 
