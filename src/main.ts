@@ -4,10 +4,37 @@ let dateInput = document.getElementById("dateInput");
 let textarea = document.getElementById("textarea");
 let msg = document.getElementById("msg");
 let tasks = document.getElementById("tasks");
+let data = {};
+let tasksList = []
 
 textInput.value = "";
 dateInput.value = "";
 textarea.value = "";
+
+const getTasks = async ()=> {
+  try {
+    const response = await fetch("http://localhost:8000/tasks");
+    const responseData = await response.json();
+    // console.log('result', responseData)
+    return responseData;
+  }
+  catch (error) {
+    console.error("Error", error);
+  }
+}
+
+getTasks()
+  .then(r => {    
+        
+    //r.forEach((d) => {
+    //  data["title"] = d.title;
+    //  data["description"] = d.description;
+    //  data["done"] = d.done;     
+    //});
+    tasksList = r
+    console.log("tasksList", tasksList) 
+  })
+  .catch(error => console.log(e));
 
 form.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -26,7 +53,7 @@ const formValidation = () => {
   }
 };
 
-let data = {};
+
 
 const acceptData = () => {
   data["title"] = textInput.value;
