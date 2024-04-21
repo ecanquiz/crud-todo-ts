@@ -29,9 +29,9 @@ const formValidation = () => {
 let data = {};
 
 const acceptData = () => {
-  data["textInput"] = textInput.value;
-  data["dateInput"] = dateInput.value;
-  data["textarea"] = textarea.value;
+  data["title"] = textInput.value;
+  data["description"] = textarea.value;
+  data["done"] = dateInput.value;  
   console.log(data);
   createTask();
 };
@@ -39,7 +39,7 @@ const acceptData = () => {
 const createTask = () => {
   tasks.innerHTML += `
   <div>
-    <p>${data.textInput}</p><p>${data.dateInput}</p><p>${data.textarea}</p>
+    <p>${data.title}</p><p>${data.description}</p><p>${data.done}</p>
     <span class="options">
       <i onClick="editTask(this)" class="fas fa-edit"></i>
       <i onClick="deleteTask(this)" class="fas fa-trash-alt"></i>
@@ -55,10 +55,10 @@ const deleteTask = (e) => {
   e.parentElement.parentElement.remove();
 };
 
-const editTask = (e) => {
+const editTask = (e) => {  
   textInput.value = e.parentElement.previousElementSibling.previousElementSibling.previousElementSibling.innerHTML;
-  dateInput.value = e.parentElement.previousElementSibling.previousElementSibling.innerHTML;
-  textarea.value = e.parentElement.previousElementSibling.innerHTML; 
+  textarea.value = e.parentElement.previousElementSibling.previousElementSibling.innerHTML;
+  dateInput.value = e.parentElement.previousElementSibling.innerHTML;   
   e.parentElement.parentElement.remove();
 };
 
