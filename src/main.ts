@@ -1,56 +1,65 @@
 let form = document.getElementById("form");
-let textInput = document.getElementById("textInput");
-let dateInput = document.getElementById("dateInput");
-let textArea = document.getElementById("textarea");
+let textInput = <HTMLInputElement>document.getElementById("textInput");
+let dateInput = <HTMLInputElement>document.getElementById("dateInput");
+let textArea = <HTMLInputElement>document.getElementById("textarea");
 let msg = document.getElementById("msg");
 let tasks = document.getElementById("tasks");
+const url = "http://10.90.20.129:8001/tasks"
 
-let task = {title: '', description: '', done: ''};
+let idtaskEditing: Number = 0
+
+type Task = { id?: Number, title: string; description: string; done: string; };
+
+let task: Task = {title: '', description: '', done: '' };
 
 textInput.value = "";
 dateInput.value = "";
 textArea.value = "";
 
-const getTasks = async ()=> {
+
+// Funcion que llama las tareas, las recorre para mostrarlos directamente en documento cuando se haga llamado a la función.
+// para reutilizar la funcion cuantas veces sea necesario
+
+const getTasks = async () => {
   try {
-    const response = await fetch("http://localhost:8000/tasks");
-    const responseData = await response.json();
-    return responseData;
+    const response = await fetch(url);
+    const responseData: Task[] = await response.json();
+    tasks!.innerHTML = responseData!.map(t => {
+      return `
+        <div class="CardTask">
+        <h3>task #${t.id}</h3>
+          <p>${t.title}</p><p>${t.description}</p><p>${t.done}</p>
+          <span class="options">
+            <i onClick="editTask(this,'${t.id}')" class="fas fa-edit"></i>
+            <i onClick="deleteTask(${t.id})" class="fas fa-trash-alt"></i>
+          </span>
+        </div>
+      `;
+    }).toString().replace(/ ,/g, "")
+
+    idtaskEditing = 0 // se establece la id en 0 porque en caso de que se haya modificado algo, se borre la id.
   }
   catch (error) {
     console.error("Error", error);
   }
 }
 
-getTasks()
-  .then(r => {
-    tasks.innerHTML = r.map(t => {
-      return `
-        <div>
-          <p>${t.title}</p><p>${t.description}</p><p>${t.done}</p>
-          <span class="options">
-            <i onClick="editTask(this)" class="fas fa-edit"></i>
-            <i onClick="deleteTask(this)" class="fas fa-trash-alt"></i>
-          </span>
-        </div>
-      `;
-    }).toString().replace(/,/g,'');
-  })
-  .catch(e => console.log(e));
+// Recien cuando se carga el documento
 
-form.addEventListener("submit", (e) => {
+getTasks()
+
+form!.addEventListener("submit", (e) => {
   e.preventDefault();
-  console.log("button clicked");
   formValidation();
 });
 
+// fin carga inicial del documento
+
 const formValidation = () => {
   if (textInput.value === "" || dateInput.value === "" || textArea.value === "") {
-    msg.innerHTML = "Task cannot be blank";
-    console.log("failure");
+    msg!.innerHTML = "<br>Task cannot be blank";
   } else {
-    console.log("successs");
-    msg.innerHTML = "";
+    msg!.innerHTML = "";
     acceptData();
   }
 };
@@ -59,31 +68,52 @@ const acceptData = () => {
   task["title"] = textInput.value;
   task["description"] = textArea.value;
   task["done"] = dateInput.value;
-  createTask();
-};
+  
+  idtaskEditing == 0 ? createTask() : ModifyTask();
 
-const createTask = () => {
-  tasks.innerHTML += `
-  <div>
-    <p>${task.title}</p><p>${task.description}</p><p>${task.done}</p>
-    <span class="options">
-      <i onClick="editTask(this)" class="fas fa-edit"></i>
-      <i onClick="deleteTask(this)" class="fas fa-trash-alt"></i>
-    </span>
-  </div>
-  `;
+  // esto limpia los campos
   textInput.value = "";
   dateInput.value = "";
   textArea.value = "";
 };
 
-const deleteTask = (e) => {
-  e.parentElement.parentElement.remove();
+const createTask = async () => {
+  const response = await fetch(url, {
+    method: "POST",
+    body: JSON.stringify(task),
+    headers: {
+      "Content-Type": "application/json",
+    }
+  })
+  if (response.status == 201) getTasks()
+    else msg!.innerHTML = "<br>text error";
 };
 
-const editTask = (e) => {  
-  textInput.value = e.parentElement.previousElementSibling.previousElementSibling.previousElementSibling.innerHTML;
-  textArea.value = e.parentElement.previousElementSibling.previousElementSibling.innerHTML;
-  dateInput.value = e.parentElement.previousElementSibling.innerHTML;   
-  e.parentElement.parentElement.remove();
+const deleteTask = async (id: Number) => {
+  const response = await fetch(`${url}/${id}`, {
+    method: "DELETE",
+  })
+  if (response.status == 201) getTasks()
+    else msg!.innerHTML = "<br>text error";
+};
+
+const editTask = (e: HTMLInputElement, id: any) => {
+  idtaskEditing = id
+  textInput.value = e.parentElement!.previousElementSibling!.previousElementSibling!.previousElementSibling!.innerHTML;
+  textArea.value = e.parentElement!.previousElementSibling!.previousElementSibling!.innerHTML;
+  dateInput.value = e.parentElement!.previousElementSibling!.innerHTML;
+  e.parentElement!.parentElement!.remove();
+};
+
+
+const ModifyTask = async () => {
+  const response = await fetch(`${url}/${idtaskEditing}`, {
+    method: "PUT",
+    body: JSON.stringify(task),
+    headers: {
+      "Content-Type": "application/json",
+    }
+  })
+  if (response.status == 200) getTasks()
+    else msg!.innerHTML = "<br>no se pudo modificar";
 };
