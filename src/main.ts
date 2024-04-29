@@ -4,13 +4,14 @@ let dateInput = <HTMLInputElement>document.getElementById("dateInput");
 let textArea = <HTMLInputElement>document.getElementById("textarea");
 let msg = document.getElementById("msg");
 let tasks = document.getElementById("tasks");
-const url = "http://10.90.20.129:8001/tasks"
 
-let idtaskEditing: Number = 0
+const url = import.meta.env.VITE_API_URL as string;
 
-type Task = { id?: Number, title: string; description: string; done: string; };
+let idTaskEditing: Number = 0
 
-let task: Task = {title: '', description: '', done: '' };
+type Task = { id_task?: Number, title: string; description: string; done: string; };
+
+let task: Task = { title: '', description: '', done: '' };
 
 textInput.value = "";
 dateInput.value = "";
@@ -24,20 +25,50 @@ const getTasks = async () => {
   try {
     const response = await fetch(url);
     const responseData: Task[] = await response.json();
-    tasks!.innerHTML = responseData!.map(t => {
-      return `
-        <div class="CardTask">
-        <h3>task #${t.id}</h3>
-          <p>${t.title}</p><p>${t.description}</p><p>${t.done}</p>
-          <span class="options">
-            <i onClick="editTask(this,'${t.id}')" class="fas fa-edit"></i>
-            <i onClick="deleteTask(${t.id})" class="fas fa-trash-alt"></i>
-          </span>
-        </div>
-      `;
-    }).toString().replace(/ ,/g, "")
+    tasks!.innerHTML = "";
+    responseData!.map(t => {
+      const cardTask = document.createElement("div");
+      cardTask.classList.add("CardTask");
 
-    idtaskEditing = 0 // se establece la id en 0 porque en caso de que se haya modificado algo, se borre la id.
+      const taskTitle = document.createElement("h3");
+      taskTitle.textContent = `task #${t.id_task}`;
+
+      const titleParagraph = document.createElement("p");
+      titleParagraph.textContent = t.title;
+
+      const descriptionParagraph = document.createElement("p");
+      descriptionParagraph.textContent = t.description;
+
+      const doneParagraph = document.createElement("p");
+      doneParagraph.className = "fechaDone";
+      doneParagraph.textContent = t.done;
+
+      const optionsSpan = document.createElement("span");
+      optionsSpan.classList.add("options");
+
+      const editIcon = document.createElement("i");
+      editIcon.classList.add("fas", "fa-edit");
+      editIcon.textContent = " Modify";
+      editIcon.onclick = (e) => editTask(e.target as HTMLInputElement, t.id_task)
+
+      const deleteIcon = document.createElement("i");
+      deleteIcon.classList.add("fas", "fa-trash-alt");
+      deleteIcon.textContent = " Delete";
+      deleteIcon.onclick = () => deleteTask(t.id_task)
+
+
+      optionsSpan.appendChild(editIcon);
+      optionsSpan.appendChild(deleteIcon);
+
+      cardTask.appendChild(taskTitle);
+      cardTask.appendChild(titleParagraph);
+      cardTask.appendChild(descriptionParagraph);
+      cardTask.appendChild(doneParagraph);
+      cardTask.appendChild(optionsSpan);
+
+      tasks!.appendChild(cardTask);
+    });
+    idTaskEditing = 0 // se establece la id en 0 porque en caso de que se haya modificado algo, se borre la id.
   }
   catch (error) {
     console.error("Error", error);
@@ -68,8 +99,8 @@ const acceptData = () => {
   task["title"] = textInput.value;
   task["description"] = textArea.value;
   task["done"] = dateInput.value;
-  
-  idtaskEditing == 0 ? createTask() : ModifyTask();
+
+  idTaskEditing == 0 ? createTask() : ModifyTask();
 
   // esto limpia los campos
   textInput.value = "";
@@ -81,39 +112,34 @@ const createTask = async () => {
   const response = await fetch(url, {
     method: "POST",
     body: JSON.stringify(task),
-    headers: {
-      "Content-Type": "application/json",
-    }
   })
   if (response.status == 201) getTasks()
-    else msg!.innerHTML = "<br>text error";
+  else msg!.innerHTML = "<br>text error";
 };
 
-const deleteTask = async (id: Number) => {
+const deleteTask = async (id: any) => {
   const response = await fetch(`${url}/${id}`, {
     method: "DELETE",
   })
-  if (response.status == 201) getTasks()
-    else msg!.innerHTML = "<br>text error";
+  if (response.status == 200) getTasks()
+  else msg!.innerHTML = "<br>text error";
 };
 
-const editTask = (e: HTMLInputElement, id: any) => {
-  idtaskEditing = id
-  textInput.value = e.parentElement!.previousElementSibling!.previousElementSibling!.previousElementSibling!.innerHTML;
-  textArea.value = e.parentElement!.previousElementSibling!.previousElementSibling!.innerHTML;
-  dateInput.value = e.parentElement!.previousElementSibling!.innerHTML;
-  e.parentElement!.parentElement!.remove();
+const editTask = (target: HTMLInputElement, id: any) => {
+  idTaskEditing = id
+  textInput.value = target.parentElement!.previousElementSibling!.previousElementSibling!.previousElementSibling!.innerHTML;
+  textArea.value = target.parentElement!.previousElementSibling!.previousElementSibling!.innerHTML;
+  dateInput.value = target.parentElement!.previousElementSibling!.innerHTML;
+  target.parentElement!.parentElement!.remove();
 };
 
 
 const ModifyTask = async () => {
-  const response = await fetch(`${url}/${idtaskEditing}`, {
+  const response = await fetch(`${url}/${idTaskEditing}`, {
     method: "PUT",
     body: JSON.stringify(task),
-    headers: {
-      "Content-Type": "application/json",
-    }
   })
   if (response.status == 200) getTasks()
-    else msg!.innerHTML = "<br>no se pudo modificar";
+  else msg!.innerHTML = "<br>no se pudo modificar";
 };
+
