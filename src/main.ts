@@ -5,11 +5,11 @@ let textArea = <HTMLInputElement>document.getElementById("textarea");
 let msg = document.getElementById("msg");
 let tasks = document.getElementById("tasks");
 
-const url = import.meta.env.VITE_API_URL as string;
+const url = `${import.meta.env.VITE_API_URL}/tasks` as string;
 
 let idTaskEditing: Number = 0
 
-type Task = { id_task?: Number, title: string; description: string; done: string; };
+type Task = { id?: Number, title: string; description: string; done: string; };
 
 let task: Task = { title: '', description: '', done: '' };
 
@@ -31,7 +31,7 @@ const getTasks = async () => {
       cardTask.classList.add("CardTask");
 
       const taskTitle = document.createElement("h3");
-      taskTitle.textContent = `task #${t.id_task}`;
+      taskTitle.textContent = `task #${t.id}`;
 
       const titleParagraph = document.createElement("p");
       titleParagraph.textContent = t.title;
@@ -49,12 +49,12 @@ const getTasks = async () => {
       const editIcon = document.createElement("i");
       editIcon.classList.add("fas", "fa-edit");
       editIcon.textContent = " Modify";
-      editIcon.onclick = (e) => editTask(e.target as HTMLInputElement, t.id_task)
+      editIcon.onclick = () => editTask(t.id)
 
       const deleteIcon = document.createElement("i");
       deleteIcon.classList.add("fas", "fa-trash-alt");
       deleteIcon.textContent = " Delete";
-      deleteIcon.onclick = () => deleteTask(t.id_task)
+      deleteIcon.onclick = () => deleteTask(t.id)
 
 
       optionsSpan.appendChild(editIcon);
@@ -125,12 +125,22 @@ const deleteTask = async (id: any) => {
   else msg!.innerHTML = "<br>text error";
 };
 
-const editTask = (target: HTMLInputElement, id: any) => {
-  idTaskEditing = id
-  textInput.value = target.parentElement!.previousElementSibling!.previousElementSibling!.previousElementSibling!.innerHTML;
+const editTask = async (id: any) => {
+  idTaskEditing = id 
+  const response = await fetch(`${url}/${id}`)
+  const res: Task = await response.json()
+  if (response.status == 200) {
+    textInput.value = res.title;
+    textArea.value = res.description;
+    dateInput.value = res.done;
+  }
+
+  else msg!.innerHTML = "<br>text error";
+  /*  idTaskEditing = id 
+ textInput.value = target.parentElement!.previousElementSibling!.previousElementSibling!.previousElementSibling!.innerHTML;
   textArea.value = target.parentElement!.previousElementSibling!.previousElementSibling!.innerHTML;
   dateInput.value = target.parentElement!.previousElementSibling!.innerHTML;
-  target.parentElement!.parentElement!.remove();
+  target.parentElement!.parentElement!.remove(); */
 };
 
 
